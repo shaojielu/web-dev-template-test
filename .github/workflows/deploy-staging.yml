@@ -1,0 +1,138 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    permissions:
+      contents: read
+      packages: write
+    runs-on:
+      - self-hosted
+      - staging
+    env:
+      ENVIRONMENT: staging
+      DOMAIN: ${{ secrets.DOMAIN_STAGING }}
+      STACK_NAME: ${{ secrets.STACK_NAME_STAGING }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
+      FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+      SEED_SAMPLE_DATA: "false"
+      ENABLE_PUBLIC_SIGNUP: "false"
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_TLS: ${{ secrets.SMTP_TLS }}
+      EMAILS_FROM_EMAIL: ${{ secrets.EMAILS_FROM_EMAIL }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'app' }}
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT || '5432' }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      FRONTEND_HOST: https://dashboard.${{ secrets.DOMAIN_STAGING }}
+      BACKEND_CORS_ORIGINS: https://dashboard.${{ secrets.DOMAIN_STAGING }},https://api.${{ secrets.DOMAIN_STAGING }}
+      DOCKER_IMAGE_BACKEND: ghcr.io/${{ github.repository }}/backend
+      DOCKER_IMAGE_FRONTEND: ghcr.io/${{ github.repository }}/frontend
+      TAG: ${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/backend:latest
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/backend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/backend:buildcache,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/frontend:latest
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=https://api.${{ secrets.DOMAIN_STAGING }}
+            API_BASE_URL=https://api.${{ secrets.DOMAIN_STAGING }}
+            NODE_ENV=production
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/frontend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/frontend:buildcache,mode=max
+
+      - name: Verify Docker Swarm is active
+        run: |
+          if ! docker info --format '{{.Swarm.LocalNodeState}}' | grep -q 'active'; then
+            echo "::error::Docker Swarm is not initialized on this node. Please run 'docker swarm init' manually."
+            exit 1
+          fi
+
+      - name: Ensure traefik-public network exists
+        run: docker network create --driver overlay --attachable traefik-public 2>/dev/null || true
+
+      - name: Run database migrations (existing stack only)
+        run: |
+          if docker stack services "${STACK_NAME}" >/dev/null 2>&1; then
+            docker run --rm \
+              --network "${STACK_NAME}_default" \
+              -e DOMAIN="${DOMAIN}" \
+              -e FRONTEND_HOST="${FRONTEND_HOST}" \
+              -e ENVIRONMENT="${ENVIRONMENT}" \
+              -e BACKEND_CORS_ORIGINS="${BACKEND_CORS_ORIGINS}" \
+              -e SECRET_KEY="${SECRET_KEY}" \
+              -e FIRST_SUPERUSER="${FIRST_SUPERUSER}" \
+              -e FIRST_SUPERUSER_PASSWORD="${FIRST_SUPERUSER_PASSWORD}" \
+              -e SEED_SAMPLE_DATA="${SEED_SAMPLE_DATA}" \
+              -e ENABLE_PUBLIC_SIGNUP="${ENABLE_PUBLIC_SIGNUP}" \
+              -e SMTP_HOST="${SMTP_HOST}" \
+              -e SMTP_USER="${SMTP_USER}" \
+              -e SMTP_PASSWORD="${SMTP_PASSWORD}" \
+              -e SMTP_PORT="${SMTP_PORT}" \
+              -e SMTP_TLS="${SMTP_TLS}" \
+              -e EMAILS_FROM_EMAIL="${EMAILS_FROM_EMAIL}" \
+              -e POSTGRES_SERVER="${POSTGRES_SERVER}" \
+              -e POSTGRES_PORT="${POSTGRES_PORT}" \
+              -e POSTGRES_DB="${POSTGRES_DB}" \
+              -e POSTGRES_USER="${POSTGRES_USER}" \
+              -e POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
+              -e SENTRY_DSN="${SENTRY_DSN}" \
+              "${DOCKER_IMAGE_BACKEND}:${TAG}" \
+              alembic upgrade head
+          else
+            echo "No existing stack found, skipping one-off migration."
+          fi
+
+      - name: Deploy stack
+        # Note: Traefik should be deployed separately as an independent stack
+        # before deploying the application. See compose.traefik-swarm.yml.
+        run: |
+          docker stack deploy \
+            -c compose.yml \
+            -c compose.swarm.yml \
+            --with-registry-auth \
+            ${{ secrets.STACK_NAME_STAGING }}

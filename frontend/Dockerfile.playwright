@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/playwright:v1.58.2-noble
+
+WORKDIR /app
+
+RUN corepack enable
+
+COPY frontend/package.json ./package.json
+COPY frontend/pnpm-lock.yaml ./pnpm-lock.yaml
+
+RUN pnpm install --frozen-lockfile --prod=false
+
+COPY ./frontend ./
+
+ARG NEXT_PUBLIC_API_BASE_URL
+ARG API_BASE_URL
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV API_BASE_URL=$API_BASE_URL

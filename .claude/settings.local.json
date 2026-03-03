@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n \"Acme\" /c/Users/13129/my/web-dev-template/frontend/app/login/page.tsx /c/Users/13129/my/web-dev-template/frontend/app/ui/*.tsx)",
+      "Bash(ls -la /c/Users/13129/my/web-dev-template/frontend/app/dashboard/\\\\\\(overview\\\\\\)/)",
+      "Bash(cat '/c/Users/13129/my/web-dev-template/frontend/app/dashboard/\\(overview\\)/page.tsx')",
+      "Bash(grep -n \"revenue-chart\" /c/Users/13129/my/web-dev-template/frontend/app/ui/dashboard/*)",
+      "Bash(grep -n \"master\" /c/Users/13129/my/web-dev-template/.github/workflows/deploy-*.yml)",
+      "mcp__plugin_context7_context7__query-docs",
+      "mcp__plugin_context7_context7__resolve-library-id"
+    ]
+  }
+}

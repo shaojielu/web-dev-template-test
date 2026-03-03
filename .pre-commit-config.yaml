@@ -1,0 +1,61 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+        args: [--unsafe]
+      - id: check-json
+        exclude: ^frontend/tsconfig.*\.json$
+      - id: debug-statements
+      - id: end-of-file-fixer
+        exclude: |
+          (?x)^(
+              frontend/src/client/.*|
+              backend/app/email-templates/build/.*
+          )$
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: trailing-whitespace
+        exclude: ^frontend/src/client/.*
+      - id: no-commit-to-branch
+        args: [--branch, main]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.4
+    hooks:
+      - id: ruff-check
+        args: [--force-exclude, --fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+        args: [--force-exclude]
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run mypy backend/app
+        language: system
+        require_serial: true
+        pass_filenames: false
+        types: [python]
+        files: ^backend/
+
+      - id: eslint
+        name: eslint
+        entry: pnpm -C frontend lint
+        language: system
+        require_serial: true
+        pass_filenames: false
+        files: ^frontend/.*\.(js|jsx|ts|tsx)$
+
+      - id: generate-frontend-sdk
+        name: Generate Frontend SDK
+        entry: bash ./scripts/generate-client.sh
+        language: system
+        pass_filenames: false
+        files: ^backend/.*$|^scripts/generate-client\.sh$

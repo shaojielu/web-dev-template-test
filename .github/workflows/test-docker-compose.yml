@@ -1,0 +1,39 @@
+name: Test Docker Compose
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+
+  test-docker-compose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Prepare environment file
+        run: |
+          cp .env.example .env
+          sed -i 's/^ENVIRONMENT=.*/ENVIRONMENT=test/' .env
+          sed -i 's/^POSTGRES_DB=.*/POSTGRES_DB=app_test/' .env
+          sed -i 's/^POSTGRES_PORT=.*/POSTGRES_PORT=5432/' .env
+          sed -i 's/^SEED_SAMPLE_DATA=.*/SEED_SAMPLE_DATA=false/' .env
+          sed -i 's/^ENABLE_PUBLIC_SIGNUP=.*/ENABLE_PUBLIC_SIGNUP=false/' .env
+      - run: docker compose build
+      - run: docker compose down -v --remove-orphans
+      - run: docker compose up -d --wait backend frontend adminer
+      - name: Test backend is up
+        run: curl -f --retry 5 --retry-delay 3 --retry-all-errors http://localhost:8000/api/v1/utils/health-check
+      - name: Test frontend is up
+        run: curl -f --retry 5 --retry-delay 3 --retry-all-errors http://localhost:3000
+      - run: docker compose down -v --remove-orphans
+        if: always()
+      - name: Cleanup environment file
+        if: always()
+        run: rm -f .env

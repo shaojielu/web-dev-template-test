@@ -1,0 +1,156 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches:
+    - main
+    - develop
+  pull_request:
+    types:
+    - opened
+    - synchronize
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: 'false'
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    # Set job outputs to values from filter step
+    outputs:
+      changed: ${{ steps.filter.outputs.changed }}
+    steps:
+    - uses: actions/checkout@v6
+    # For pull requests it's not necessary to checkout the code but for the main branch it is
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          changed:
+            - backend/**
+            - frontend/**
+            - .env.example
+            - compose*.yml
+            - .github/workflows/playwright.yml
+
+  test-playwright:
+    needs:
+      - changes
+    if: ${{ needs.changes.outputs.changed == 'true' }}
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v6
+    - name: Prepare environment file
+      run: |
+        cp .env.example .env
+        sed -i 's/^ENVIRONMENT=.*/ENVIRONMENT=test/' .env
+        sed -i 's/^POSTGRES_DB=.*/POSTGRES_DB=app_test/' .env
+        sed -i 's/^POSTGRES_PORT=.*/POSTGRES_PORT=5432/' .env
+        sed -i 's/^SEED_SAMPLE_DATA=.*/SEED_SAMPLE_DATA=true/' .env
+        sed -i 's/^ENABLE_PUBLIC_SIGNUP=.*/ENABLE_PUBLIC_SIGNUP=false/' .env
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 9
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: 'pnpm'
+        cache-dependency-path: frontend/pnpm-lock.yaml
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.13'
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true' }}
+      with:
+        limit-access-to-actor: true
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+    - run: uv sync
+      working-directory: backend
+    - run: pnpm install --frozen-lockfile
+      working-directory: frontend
+    - run: docker compose build
+    - run: docker compose down -v --remove-orphans
+    - name: Run Playwright tests
+      run: docker compose run --rm playwright pnpm exec playwright test --fail-on-flaky-tests --trace=retain-on-failure --video=retain-on-failure --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+    - run: docker compose down -v --remove-orphans
+      if: always()
+    - name: Cleanup environment file
+      if: always()
+      run: rm -f .env
+    - name: Upload blob report to GitHub Actions Artifacts
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: blob-report-${{ matrix.shardIndex }}
+        path: frontend/blob-report
+        include-hidden-files: true
+        retention-days: 1
+    - name: Upload Playwright traces and videos
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: playwright-results-${{ matrix.shardIndex }}
+        path: frontend/test-results
+        include-hidden-files: true
+        retention-days: 3
+
+  merge-playwright-reports:
+    needs:
+      - test-playwright
+      - changes
+    # Merge reports after playwright-tests, even if some shards have failed
+    if: ${{ !cancelled() && needs.changes.outputs.changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 9
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: 'pnpm'
+        cache-dependency-path: frontend/pnpm-lock.yaml
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      working-directory: frontend
+    - name: Download blob reports from GitHub Actions Artifacts
+      uses: actions/download-artifact@v7
+      with:
+        path: frontend/all-blob-reports
+        pattern: blob-report-*
+        merge-multiple: true
+    - name: Merge into HTML Report
+      run: pnpm exec playwright merge-reports --reporter html ./all-blob-reports
+      working-directory: frontend
+    - name: Upload HTML report
+      uses: actions/upload-artifact@v6
+      with:
+        name: html-report--attempt-${{ github.run_attempt }}
+        path: frontend/playwright-report
+        retention-days: 30
+        include-hidden-files: true
+
+  # https://github.com/marketplace/actions/alls-green#why
+  alls-green-playwright:  # This job does nothing and is only used for the branch protection
+    if: always()
+    needs:
+      - test-playwright
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
+          allowed-skips: test-playwright

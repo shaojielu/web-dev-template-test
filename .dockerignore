@@ -1,0 +1,9 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.venv
+**/htmlcov
+frontend/blob-report
+frontend/test-results
+frontend/.pnpm-store

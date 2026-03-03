@@ -1,0 +1,64 @@
+name: Test Backend
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Prepare test environment file
+        run: |
+          cp .env.example .env
+          sed -i 's/^ENVIRONMENT=.*/ENVIRONMENT=test/' .env
+          sed -i 's/^POSTGRES_DB=.*/POSTGRES_DB=app_test/' .env
+          sed -i 's/^POSTGRES_PORT=.*/POSTGRES_PORT=5432/' .env
+          sed -i 's/^SEED_SAMPLE_DATA=.*/SEED_SAMPLE_DATA=false/' .env
+          sed -i 's/^ENABLE_PUBLIC_SIGNUP=.*/ENABLE_PUBLIC_SIGNUP=false/' .env
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - run: docker compose down -v --remove-orphans
+      - run: docker compose up -d db mailcatcher
+      - name: Migrate DB
+        run: uv run bash scripts/prestart.sh
+        working-directory: backend
+      - name: Collect tests
+        run: |
+          ENVIRONMENT=test \
+          POSTGRES_DB=app_test \
+          POSTGRES_SERVER=localhost \
+          POSTGRES_PORT=5432 \
+          POSTGRES_USER=postgres \
+          POSTGRES_PASSWORD=changethis \
+          uv run pytest -q --collect-only
+        working-directory: backend
+      - name: Run tests
+        run: uv run bash scripts/tests-start.sh "Coverage for ${{ github.sha }}"
+        working-directory: backend
+      - run: docker compose down -v --remove-orphans
+        if: always()
+      - name: Store coverage files
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage-html
+          path: backend/htmlcov
+          include-hidden-files: true
+      - name: Coverage report
+        run: uv run coverage report --fail-under=90
+        working-directory: backend
+      - name: Cleanup test environment file
+        if: always()
+        run: rm -f .env
