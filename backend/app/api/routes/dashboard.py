@@ -13,7 +13,7 @@ async def read_dashboard_cards(
     _: CurrentActiveUserDep,
 ) -> DashboardCards:
     data = await get_dashboard_cards(session)
-    return DashboardCards(**data)
+    return data
 
 
 @router.get("/revenue", response_model=list[RevenuePoint])
@@ -21,5 +21,4 @@ async def read_revenue(
     session: SessionDep,
     _: CurrentActiveUserDep,
 ) -> list[RevenuePoint]:
-    revenue = await get_revenue_last_12_months(session)
-    return [RevenuePoint(**item) for item in revenue]
+    return await get_revenue_last_12_months(session)

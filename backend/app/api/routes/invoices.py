@@ -30,7 +30,7 @@ def _to_public(invoice: Invoice, customer: Customer) -> InvoicePublic:
         id=invoice.id,
         customer_id=invoice.customer_id,
         amount=str(invoice.amount),
-        status=invoice.status,
+        status=invoice.status,  # type: ignore[arg-type]
         date=invoice.date,
         name=customer.name,
         email=customer.email,
@@ -131,6 +131,6 @@ async def delete_invoice_route(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found"
         )
-    invoice, _ = result
+    invoice, _customer = result
     await delete_invoice(session, invoice)
     return Message(message="Invoice deleted")

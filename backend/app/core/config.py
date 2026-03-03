@@ -1,4 +1,3 @@
-import secrets
 import warnings
 from typing import Annotated, Any, Literal, Self
 
@@ -44,7 +43,7 @@ class Settings(BaseSettings):
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def all_cors_origins(self) -> list[str]:
         return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [
@@ -60,7 +59,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = ""
     DB_ECHO: bool = False
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
         return PostgresDsn.build(
@@ -89,7 +88,7 @@ class Settings(BaseSettings):
 
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 2
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def emails_enabled(self) -> bool:
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
@@ -123,4 +122,4 @@ class Settings(BaseSettings):
         return self
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]

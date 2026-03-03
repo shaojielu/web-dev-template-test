@@ -18,7 +18,9 @@ async def test_create_user(
 ) -> None:
     username = random_email()
     password = random_lower_string()
-    user_in = PrivateUserCreate(email=username, password=password, full_name="Test User")
+    user_in = PrivateUserCreate(
+        email=username, password=password, full_name="Test User"
+    )
     response = await client.post(
         f"{settings.API_V1_STR}/private/users/",
         json=user_in.model_dump(),

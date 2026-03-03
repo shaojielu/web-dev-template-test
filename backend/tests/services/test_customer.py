@@ -60,7 +60,9 @@ async def test_get_customer_summaries_formats_decimal_totals(db: AsyncSession) -
     )
     await db.commit()
 
-    data, count = await get_customer_summaries(db, query=f"Summary-{tag}", skip=0, limit=10)
+    data, count = await get_customer_summaries(
+        db, query=f"Summary-{tag}", skip=0, limit=10
+    )
     assert count == 1
     assert len(data) == 1
     assert data[0]["total_paid"] == "12.50"

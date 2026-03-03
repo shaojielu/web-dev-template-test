@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import logging
+from decimal import Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -79,49 +80,49 @@ async def init_db(session: AsyncSession) -> None:
             sample_invoices = [
                 InvoiceCreate(
                     customer_id=customers[0].id,
-                    amount=320.25,
+                    amount=Decimal("320.25"),
                     status="paid",
                     date=today - datetime.timedelta(days=7),
                 ),
                 InvoiceCreate(
                     customer_id=customers[1].id,
-                    amount=128.0,
+                    amount=Decimal("128.00"),
                     status="pending",
                     date=today - datetime.timedelta(days=14),
                 ),
                 InvoiceCreate(
                     customer_id=customers[2].id,
-                    amount=540.5,
+                    amount=Decimal("540.50"),
                     status="paid",
                     date=today - datetime.timedelta(days=25),
                 ),
                 InvoiceCreate(
                     customer_id=customers[3].id,
-                    amount=75.0,
+                    amount=Decimal("75.00"),
                     status="pending",
                     date=today - datetime.timedelta(days=33),
                 ),
                 InvoiceCreate(
                     customer_id=customers[4].id,
-                    amount=890.99,
+                    amount=Decimal("890.99"),
                     status="paid",
                     date=today - datetime.timedelta(days=45),
                 ),
                 InvoiceCreate(
                     customer_id=customers[5].id,
-                    amount=210.0,
+                    amount=Decimal("210.00"),
                     status="paid",
                     date=today - datetime.timedelta(days=60),
                 ),
                 InvoiceCreate(
                     customer_id=customers[0].id,
-                    amount=150.75,
+                    amount=Decimal("150.75"),
                     status="pending",
                     date=today - datetime.timedelta(days=75),
                 ),
                 InvoiceCreate(
                     customer_id=customers[1].id,
-                    amount=430.4,
+                    amount=Decimal("430.40"),
                     status="paid",
                     date=today - datetime.timedelta(days=90),
                 ),

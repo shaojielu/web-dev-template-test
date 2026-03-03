@@ -26,7 +26,9 @@ async def test_create_invoice_quantizes_amount_and_sets_default_date(
     )
     invoice = await create_invoice(
         db,
-        InvoiceCreate(customer_id=customer.id, amount=Decimal("10.1"), status="pending"),
+        InvoiceCreate(
+            customer_id=customer.id, amount=Decimal("10.1"), status="pending"
+        ),
     )
     await db.commit()
 

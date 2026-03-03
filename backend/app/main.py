@@ -1,7 +1,7 @@
 import logging
 import time
 import uuid
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 import sentry_sdk
@@ -46,9 +46,11 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def access_log(request: Request, call_next: object) -> Response:
+async def access_log(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     start_time = time.monotonic()
-    response = await call_next(request)  # type: ignore[call-arg]
+    response = await call_next(request)
     duration_ms = round((time.monotonic() - start_time) * 1000, 2)
     request_id = getattr(request.state, "request_id", "-")
     client = request.client.host if request.client else "-"
@@ -65,14 +67,14 @@ async def access_log(request: Request, call_next: object) -> Response:
 
 
 @app.middleware("http")
-async def add_security_headers(request: Request, call_next: object) -> Response:
-    response = await call_next(request)  # type: ignore[call-arg]
+async def add_security_headers(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = (
-        "camera=(), microphone=(), geolocation=()"
-    )
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     if settings.ENVIRONMENT == "production":
         response.headers["Strict-Transport-Security"] = (
             "max-age=63072000; includeSubDomains"
@@ -81,10 +83,12 @@ async def add_security_headers(request: Request, call_next: object) -> Response:
 
 
 @app.middleware("http")
-async def add_request_id(request: Request, call_next: object) -> Response:
+async def add_request_id(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     request.state.request_id = request_id
-    response = await call_next(request)  # type: ignore[call-arg]
+    response = await call_next(request)
     response.headers["X-Request-ID"] = request_id
     return response
 

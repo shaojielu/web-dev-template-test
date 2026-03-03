@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.customer import Customer
 from app.models.invoice import Invoice
-from app.schemas.customers import CustomerCreate, CustomerUpdate
+from app.schemas.customers import CustomerCreate, CustomerSummary, CustomerUpdate
 from app.utils.utils import decimal_to_currency_string
 
 _AVATAR_POOL = [
@@ -78,7 +78,7 @@ async def get_customer_summaries(
     query: str | None = None,
     skip: int = 0,
     limit: int = 100,
-) -> tuple[list[dict[str, object]], int]:
+) -> tuple[list[CustomerSummary], int]:
     total_pending = func.coalesce(
         func.sum(case((Invoice.status == "pending", Invoice.amount), else_=0)), 0
     ).label("total_pending")
@@ -118,18 +118,18 @@ async def get_customer_summaries(
         stmt = stmt.where(*filters)
 
     result = await session.execute(stmt)
-    rows = []
+    rows: list[CustomerSummary] = []
     for row in result.all():
         rows.append(
-            {
-                "id": row.id,
-                "name": row.name,
-                "email": row.email,
-                "image_url": normalize_image_url(row.image_url, row.email),
-                "total_invoices": int(row.total_invoices or 0),
-                "total_pending": decimal_to_currency_string(row.total_pending),
-                "total_paid": decimal_to_currency_string(row.total_paid),
-            }
+            CustomerSummary(
+                id=row.id,
+                name=row.name,
+                email=row.email,
+                image_url=normalize_image_url(row.image_url, row.email),
+                total_invoices=int(row.total_invoices or 0),
+                total_pending=decimal_to_currency_string(row.total_pending),
+                total_paid=decimal_to_currency_string(row.total_paid),
+            )
         )
     return rows, int(count)
 

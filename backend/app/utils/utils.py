@@ -5,7 +5,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-import emails
+import emails  # type: ignore[import-untyped]
 import jwt
 from jinja2 import Template
 from jwt.exceptions import InvalidTokenError

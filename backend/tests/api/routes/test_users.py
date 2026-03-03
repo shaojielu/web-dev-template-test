@@ -293,7 +293,8 @@ async def test_register_user_already_exists_error(client: AsyncClient) -> None:
         r = await client.post(f"{settings.API_V1_STR}/users/signup", json=data)
         assert r.status_code == 400
         assert (
-            r.json()["detail"] == "The user with this email already exists in the system"
+            r.json()["detail"]
+            == "The user with this email already exists in the system"
         )
     finally:
         settings.ENABLE_PUBLIC_SIGNUP = original_signup_value

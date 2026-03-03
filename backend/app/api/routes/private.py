@@ -17,9 +17,7 @@ router = APIRouter(
     response_model=UserPublic,
     status_code=status.HTTP_201_CREATED,
 )
-async def create_private_user(
-    user_in: PrivateUserCreate, session: SessionDep
-) -> User:
+async def create_private_user(user_in: PrivateUserCreate, session: SessionDep) -> User:
     user_create = UserCreate(
         email=user_in.email,
         password=user_in.password,

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.customer import Customer
 from app.models.invoice import Invoice
+from app.schemas.dashboard import DashboardCards, RevenuePoint
 from app.utils.utils import decimal_to_currency_string
 
 
@@ -24,7 +25,7 @@ def _add_months(value: datetime.date, months: int) -> datetime.date:
     return datetime.date(year, month, 1)
 
 
-async def get_dashboard_cards(session: AsyncSession) -> dict[str, str | int]:
+async def get_dashboard_cards(session: AsyncSession) -> DashboardCards:
     invoices_stmt = select(func.count()).select_from(Invoice)
     customers_stmt = select(func.count()).select_from(Customer)
     paid_stmt = select(func.coalesce(func.sum(Invoice.amount), 0)).where(
@@ -39,19 +40,17 @@ async def get_dashboard_cards(session: AsyncSession) -> dict[str, str | int]:
     paid_result = await session.execute(paid_stmt)
     pending_result = await session.execute(pending_stmt)
 
-    return {
-        "number_of_invoices": int(invoices_result.scalar() or 0),
-        "number_of_customers": int(customers_result.scalar() or 0),
-        "total_paid_invoices": decimal_to_currency_string(paid_result.scalar()),
-        "total_pending_invoices": decimal_to_currency_string(
-            pending_result.scalar()
-        ),
-    }
+    return DashboardCards(
+        number_of_invoices=int(invoices_result.scalar() or 0),
+        number_of_customers=int(customers_result.scalar() or 0),
+        total_paid_invoices=decimal_to_currency_string(paid_result.scalar()),
+        total_pending_invoices=decimal_to_currency_string(pending_result.scalar()),
+    )
 
 
 async def get_revenue_last_12_months(
     session: AsyncSession,
-) -> list[dict[str, float | str]]:
+) -> list[RevenuePoint]:
     today = datetime.date.today()
     start = _month_start(today, 11)
     end = _add_months(start, 12)
@@ -68,15 +67,15 @@ async def get_revenue_last_12_months(
         key = (invoice_date.year, invoice_date.month)
         buckets[key] = buckets.get(key, 0.0) + float(amount)
 
-    revenue: list[dict[str, float | str]] = []
+    revenue: list[RevenuePoint] = []
     current = start
     for _ in range(12):
         key = (current.year, current.month)
         revenue.append(
-            {
-                "month": calendar.month_abbr[current.month],
-                "revenue": round(buckets.get(key, 0.0), 2),
-            }
+            RevenuePoint(
+                month=calendar.month_abbr[current.month],
+                revenue=round(buckets.get(key, 0.0), 2),
+            )
         )
         current = _add_months(current, 1)
 

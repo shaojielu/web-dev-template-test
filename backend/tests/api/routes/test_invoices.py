@@ -38,7 +38,9 @@ async def test_write_invoices_requires_auth(client: AsyncClient) -> None:
     )
     assert patch_response.status_code == 401
 
-    delete_response = await client.delete(f"{settings.API_V1_STR}/invoices/{invoice_id}")
+    delete_response = await client.delete(
+        f"{settings.API_V1_STR}/invoices/{invoice_id}"
+    )
     assert delete_response.status_code == 401
 
 

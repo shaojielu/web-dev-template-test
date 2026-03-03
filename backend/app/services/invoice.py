@@ -39,7 +39,7 @@ async def get_invoice_with_customer(
         .where(Invoice.id == invoice_id)
     )
     result = await session.execute(stmt)
-    return result.one_or_none()
+    return result.tuples().one_or_none()
 
 
 async def get_latest_invoices(
@@ -52,7 +52,7 @@ async def get_latest_invoices(
         .limit(limit)
     )
     result = await session.execute(stmt)
-    return list(result.all())
+    return list(result.tuples().all())
 
 
 async def get_invoices(
@@ -88,7 +88,7 @@ async def get_invoices(
     stmt = stmt.order_by(Invoice.date.desc()).offset(skip).limit(limit)
 
     result = await session.execute(stmt)
-    return list(result.all()), int(count)
+    return list(result.tuples().all()), int(count)
 
 
 async def update_invoice(
