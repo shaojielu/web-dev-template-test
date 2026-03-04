@@ -111,12 +111,6 @@ services:
         - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
         - API_BASE_URL=http://backend:8000
         - NODE_ENV=development
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   playwright:
     build:
@@ -128,12 +122,9 @@ services:
         - NODE_ENV=production
     ipc: host
     depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_healthy
-      mailcatcher:
-        condition: service_started
+      - backend
+      - frontend
+      - mailcatcher
     env_file:
       - .env
     environment:

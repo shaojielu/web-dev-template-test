@@ -22,9 +22,7 @@ async def test_recover_password_for_existing_user(
     assert r.json()["message"] == "Password recovery email sent"
 
 
-async def test_login_inactive_user(
-    client: AsyncClient, db: AsyncSession
-) -> None:
+async def test_login_inactive_user(client: AsyncClient, db: AsyncSession) -> None:
     """An inactive user should get a 400 error on login."""
     email = random_email()
     password = random_lower_string()

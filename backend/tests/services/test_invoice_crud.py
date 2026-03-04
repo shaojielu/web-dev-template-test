@@ -81,7 +81,7 @@ async def test_get_latest_invoices(db: AsyncSession) -> None:
 
     latest = await get_latest_invoices(db, limit=2)
     assert len(latest) == 2
-    for inv, cust in latest:
+    for _inv, cust in latest:
         assert cust.id == cid
 
 

@@ -85,9 +85,7 @@ async def test_update_customer(db: AsyncSession) -> None:
     )
     await db.commit()
 
-    updated = await update_customer(
-        db, customer, CustomerUpdate(name="Updated")
-    )
+    updated = await update_customer(db, customer, CustomerUpdate(name="Updated"))
     await db.commit()
 
     assert updated.name == "Updated"
