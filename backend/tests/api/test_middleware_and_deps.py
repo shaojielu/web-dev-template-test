@@ -40,8 +40,7 @@ async def test_security_headers_include_hsts_in_production(
     monkeypatch.setattr(settings, "ENVIRONMENT", "production")
     r = await client.get(f"{settings.API_V1_STR}/utils/health-check/")
     assert (
-        r.headers["Strict-Transport-Security"]
-        == "max-age=63072000; includeSubDomains"
+        r.headers["Strict-Transport-Security"] == "max-age=63072000; includeSubDomains"
     )
 
 
