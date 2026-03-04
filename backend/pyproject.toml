@@ -82,11 +82,16 @@ filterwarnings = [
 
 [tool.coverage.run]
 source = ["app"]
-omit = ["app/email-templates/*"]
+omit = [
+    "app/email-templates/*",
+    "app/backend_pre_start.py",
+    "app/test_pre_start.py",
+]
 
 [tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",
     "raise NotImplementedError",
+    'if __name__ == "__main__":',
 ]
