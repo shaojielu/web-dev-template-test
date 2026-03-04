@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
@@ -72,11 +72,18 @@ export async function authenticate(
     return 'Login failed. Please try again.';
   }
 
+  // Only mark cookie as secure when the request is served over HTTPS.
+  const requestHeaders = await headers();
+  const forwardedProto = requestHeaders.get('x-forwarded-proto');
+  const isSecureRequest = forwardedProto
+    ?.split(',')
+    .some((value) => value.trim().toLowerCase() === 'https');
+
   const cookieStore = await cookies();
   cookieStore.set('access_token', data.access_token, {
     httpOnly: true,
     sameSite: 'strict',
-    secure: process.env.NODE_ENV === 'production',
+    secure: Boolean(isSecureRequest),
     path: '/',
   });
 

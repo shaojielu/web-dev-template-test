@@ -69,5 +69,5 @@ export async function login(page: Page) {
   await page.getByLabel('Email').fill(userEmail);
   await page.getByLabel('Password').fill(userPassword);
   await page.getByTestId('login-submit-button').click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL((url) => url.pathname === '/dashboard');
 }

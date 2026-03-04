@@ -33,6 +33,18 @@ async def test_security_headers_present(client: AsyncClient) -> None:
     assert "Permissions-Policy" in r.headers
 
 
+async def test_security_headers_include_hsts_in_production(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """HSTS header should be emitted in production mode."""
+    monkeypatch.setattr(settings, "ENVIRONMENT", "production")
+    r = await client.get(f"{settings.API_V1_STR}/utils/health-check/")
+    assert (
+        r.headers["Strict-Transport-Security"]
+        == "max-age=63072000; includeSubDomains"
+    )
+
+
 async def test_invalid_token_returns_403(client: AsyncClient) -> None:
     """Test that a completely invalid JWT token returns 403."""
     r = await client.get(
