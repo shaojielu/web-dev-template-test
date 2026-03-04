@@ -43,7 +43,6 @@ jobs:
           sed -i 's/^POSTGRES_PORT=.*/POSTGRES_PORT=5432/' .env
           sed -i 's/^SEED_SAMPLE_DATA=.*/SEED_SAMPLE_DATA=false/' .env
           sed -i 's/^ENABLE_PUBLIC_SIGNUP=.*/ENABLE_PUBLIC_SIGNUP=false/' .env
-          cp .env backend/.env
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -82,7 +81,7 @@ jobs:
         working-directory: backend
       - name: Cleanup test environment file
         if: always()
-        run: rm -f .env backend/.env
+        run: rm -f .env
 
   # https://github.com/marketplace/actions/alls-green#why
   alls-green-backend:  # This job does nothing and is only used for the branch protection

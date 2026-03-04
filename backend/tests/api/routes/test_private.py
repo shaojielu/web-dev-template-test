@@ -51,7 +51,7 @@ async def test_create_user_verify_password(
         json=user_in.model_dump(),
         headers=superuser_token_headers,
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
 
     user = await get_user_by_email(db, username)
     assert user
@@ -72,7 +72,7 @@ async def test_create_user_default_values(
         json=user_in.model_dump(),
         headers=superuser_token_headers,
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     created_user = response.json()
 
     assert created_user["is_active"] is True
@@ -93,7 +93,7 @@ async def test_create_user_response_fields(
         json=user_in.model_dump(),
         headers=superuser_token_headers,
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     created_user = response.json()
 
     assert "id" in created_user
@@ -122,7 +122,7 @@ async def test_create_user_can_login(
         json=user_in.model_dump(),
         headers=superuser_token_headers,
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
 
     login_data = {"username": username, "password": password}
     login_response = await client.post(
@@ -156,7 +156,7 @@ async def test_create_multiple_users(
             json=user_in.model_dump(),
             headers=superuser_token_headers,
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
 
     for user_in in users_data:
         user = await get_user_by_email(db, user_in.email)

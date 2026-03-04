@@ -65,5 +65,5 @@ async def test_get_customer_summaries_formats_decimal_totals(db: AsyncSession) -
     )
     assert count == 1
     assert len(data) == 1
-    assert data[0]["total_paid"] == "12.50"
-    assert data[0]["total_pending"] == "3.75"
+    assert data[0].total_paid == "12.50"
+    assert data[0].total_pending == "3.75"

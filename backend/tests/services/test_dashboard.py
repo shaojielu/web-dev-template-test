@@ -50,10 +50,10 @@ async def test_get_dashboard_cards_returns_string_totals(db: AsyncSession) -> No
     await db.commit()
 
     cards = await get_dashboard_cards(db)
-    assert cards["number_of_invoices"] >= 2
-    assert cards["number_of_customers"] >= 1
-    assert cards["total_paid_invoices"] == "10.00"
-    assert cards["total_pending_invoices"] == "4.50"
+    assert cards.number_of_invoices >= 2
+    assert cards.number_of_customers >= 1
+    assert cards.total_paid_invoices == "10.00"
+    assert cards.total_pending_invoices == "4.50"
 
 
 async def test_get_revenue_last_12_months_empty_returns_zeros(db: AsyncSession) -> None:
@@ -62,7 +62,7 @@ async def test_get_revenue_last_12_months_empty_returns_zeros(db: AsyncSession) 
 
     revenue = await get_revenue_last_12_months(db)
     assert len(revenue) == 12
-    assert all(item["revenue"] == 0 for item in revenue)
+    assert all(item.revenue == 0 for item in revenue)
 
 
 async def test_get_revenue_last_12_months_aggregates_current_month(
@@ -102,5 +102,5 @@ async def test_get_revenue_last_12_months_aggregates_current_month(
 
     revenue = await get_revenue_last_12_months(db)
     current_month = calendar.month_abbr[today.month]
-    current_point = next(item for item in revenue if item["month"] == current_month)
-    assert current_point["revenue"] == 10.0
+    current_point = next(item for item in revenue if item.month == current_month)
+    assert current_point.revenue == 10.0

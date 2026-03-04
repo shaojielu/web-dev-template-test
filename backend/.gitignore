@@ -6,6 +6,9 @@ dist/
 wheels/
 *.egg-info
 
+# Keep email template build output (overrides build/ rule above)
+!app/email-templates/build/
+
 # Virtual environments
 .venv
 venv/

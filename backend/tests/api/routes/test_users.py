@@ -60,7 +60,7 @@ async def test_create_user_new_email(
         headers=superuser_token_headers,
         json=data,
     )
-    assert r.status_code == 200
+    assert r.status_code == 201
     created_user = r.json()
     result = await db.execute(select(User).where(User.email == username))
     user = result.scalars().first()
@@ -268,7 +268,7 @@ async def test_register_user(client: AsyncClient, db: AsyncSession) -> None:
     data = {"email": username, "password": password, "full_name": full_name}
     try:
         r = await client.post(f"{settings.API_V1_STR}/users/signup", json=data)
-        assert r.status_code == 200
+        assert r.status_code == 201
         created_user = r.json()
         assert created_user["email"] == username
         assert created_user["full_name"] == full_name
@@ -515,7 +515,7 @@ async def test_create_user_with_full_details(
         headers=superuser_token_headers,
         json=data,
     )
-    assert r.status_code == 200
+    assert r.status_code == 201
     created_user = r.json()
     assert created_user["email"] == data["email"]
     assert created_user["full_name"] == data["full_name"]
@@ -556,7 +556,7 @@ async def test_register_user_minimal(client: AsyncClient, db: AsyncSession) -> N
     data = {"email": random_email(), "password": random_lower_string()}
     try:
         r = await client.post(f"{settings.API_V1_STR}/users/signup", json=data)
-        assert r.status_code == 200
+        assert r.status_code == 201
         created_user = r.json()
         assert created_user["email"] == data["email"]
         assert created_user["full_name"] == ""
