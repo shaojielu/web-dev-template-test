@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     # 60 minutes * 2 hours = 2 hours
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 2
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     FRONTEND_HOST: str = "http://localhost:3000"
     ENVIRONMENT: Literal["local", "test", "staging", "production"] = "local"
     SEED_SAMPLE_DATA: bool | None = None

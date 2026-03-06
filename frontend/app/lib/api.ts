@@ -25,6 +25,53 @@ function resolveUrl(path: string) {
   return `${API_BASE_URL.replace(/\/$/, '')}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
+async function refreshAccessToken(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const refreshToken = cookieStore.get('refresh_token')?.value;
+  if (!refreshToken) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(resolveUrl('/api/v1/login/refresh'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = (await response.json()) as {
+      access_token?: string;
+      refresh_token?: string;
+    };
+    if (!data.access_token) {
+      return null;
+    }
+
+    cookieStore.set('access_token', data.access_token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      path: '/',
+    });
+    if (data.refresh_token) {
+      cookieStore.set('refresh_token', data.refresh_token, {
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+    }
+
+    return data.access_token;
+  } catch {
+    return null;
+  }
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit & { auth?: boolean; revalidate?: number | false } = {},
@@ -55,7 +102,24 @@ export async function apiFetch<T>(
     nextOptions.cache = 'no-store';
   }
 
-  const response = await fetch(resolveUrl(path), nextOptions);
+  let response = await fetch(resolveUrl(path), nextOptions);
+
+  if (response.status === 401 && auth !== false) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      headers.set('Authorization', `Bearer ${newToken}`);
+      const retryOptions: RequestInit & { next?: { revalidate?: number | false } } = {
+        ...fetchOptions,
+        headers,
+      };
+      if (revalidate !== undefined) {
+        retryOptions.next = { revalidate };
+      } else {
+        retryOptions.cache = 'no-store';
+      }
+      response = await fetch(resolveUrl(path), retryOptions);
+    }
+  }
 
   if (!response.ok) {
     if (response.status === 401) {

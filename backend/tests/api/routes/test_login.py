@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 import pytest
 from httpx import AsyncClient
 
 from app.core.config import settings
+from app.core.security import create_refresh_token
 from app.utils.utils import generate_password_reset_token
 
 pytestmark = pytest.mark.anyio
@@ -17,6 +20,8 @@ async def test_get_access_token(client: AsyncClient) -> None:
     assert r.status_code == 200
     assert "access_token" in tokens
     assert tokens["access_token"]
+    assert "refresh_token" in tokens
+    assert tokens["refresh_token"]
 
 
 async def test_get_access_token_incorrect_password(client: AsyncClient) -> None:
@@ -142,3 +147,89 @@ async def test_recover_password_html_content_no_superuser(
         headers=normal_user_token_headers,
     )
     assert r.status_code == 403
+
+
+async def test_refresh_token_success(client: AsyncClient) -> None:
+    """Test that a valid refresh token returns a new token pair."""
+    login_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    r = await client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    tokens = r.json()
+    refresh_token = tokens["refresh_token"]
+
+    r = await client.post(
+        f"{settings.API_V1_STR}/login/refresh",
+        json={"refresh_token": refresh_token},
+    )
+    assert r.status_code == 200
+    new_tokens = r.json()
+    assert "access_token" in new_tokens
+    assert new_tokens["access_token"]
+    assert "refresh_token" in new_tokens
+    assert new_tokens["refresh_token"]
+
+    # Verify the new access token works
+    r = await client.post(
+        f"{settings.API_V1_STR}/login/test-token",
+        headers={"Authorization": f"Bearer {new_tokens['access_token']}"},
+    )
+    assert r.status_code == 200
+
+
+async def test_refresh_token_invalid(client: AsyncClient) -> None:
+    """Test that an invalid refresh token is rejected."""
+    r = await client.post(
+        f"{settings.API_V1_STR}/login/refresh",
+        json={"refresh_token": "invalid-token"},
+    )
+    assert r.status_code == 401
+
+
+async def test_refresh_token_with_access_token_rejected(client: AsyncClient) -> None:
+    """Test that using an access token as refresh token is rejected."""
+    login_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    r = await client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    tokens = r.json()
+    access_token = tokens["access_token"]
+
+    r = await client.post(
+        f"{settings.API_V1_STR}/login/refresh",
+        json={"refresh_token": access_token},
+    )
+    assert r.status_code == 401
+    assert r.json()["detail"] == "Invalid token type"
+
+
+async def test_refresh_token_expired(client: AsyncClient) -> None:
+    """Test that an expired refresh token is rejected."""
+    login_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    r = await client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    assert r.status_code == 200
+
+    # Decode the refresh token to get the user id, then create an expired one
+    tokens = r.json()
+    # Create a refresh token that's already expired
+    import jwt
+
+    payload = jwt.decode(
+        tokens["refresh_token"], settings.SECRET_KEY, algorithms=["HS256"]
+    )
+    expired_token = create_refresh_token(
+        subject=payload["sub"],
+        expires_delta=timedelta(seconds=-1),
+    )
+
+    r = await client.post(
+        f"{settings.API_V1_STR}/login/refresh",
+        json={"refresh_token": expired_token},
+    )
+    assert r.status_code == 401
+    assert r.json()["detail"] == "Refresh token expired"

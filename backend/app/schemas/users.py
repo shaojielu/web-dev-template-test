@@ -10,6 +10,7 @@ class Token(BaseModel):
     """Token returned after successful login."""
 
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
 
 

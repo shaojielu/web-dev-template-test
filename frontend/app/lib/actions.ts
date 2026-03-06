@@ -67,7 +67,10 @@ export async function authenticate(
     return 'Incorrect email or password.';
   }
 
-  const data = (await response.json()) as { access_token?: string };
+  const data = (await response.json()) as {
+    access_token?: string;
+    refresh_token?: string;
+  };
   if (!data.access_token) {
     return 'Login failed. Please try again.';
   }
@@ -87,12 +90,23 @@ export async function authenticate(
     path: '/',
   });
 
+  if (data.refresh_token) {
+    cookieStore.set('refresh_token', data.refresh_token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: Boolean(isSecureRequest),
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+  }
+
   redirect(redirectTo);
 }
 
 export async function signOut() {
   const cookieStore = await cookies();
   cookieStore.delete('access_token');
+  cookieStore.delete('refresh_token');
   redirect('/login');
 }
 

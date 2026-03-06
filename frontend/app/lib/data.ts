@@ -38,6 +38,19 @@ export async function fetchFilteredInvoices(
   query: string,
   currentPage: number,
 ): Promise<Invoice[]> {
+  const result = await fetchFilteredInvoicesWithCount(query, currentPage);
+  return result.invoices;
+}
+
+export async function fetchInvoicesPages(query: string): Promise<number> {
+  const result = await fetchFilteredInvoicesWithCount(query, 1);
+  return result.totalPages;
+}
+
+export async function fetchFilteredInvoicesWithCount(
+  query: string,
+  currentPage: number,
+): Promise<{ invoices: Invoice[]; totalPages: number }> {
   const skip = (currentPage - 1) * ITEMS_PER_PAGE;
   const params = new URLSearchParams();
   params.set('skip', skip.toString());
@@ -49,22 +62,11 @@ export async function fetchFilteredInvoices(
   const data = await apiFetch<{ data: Invoice[]; count: number }>(
     `/api/v1/invoices/?${params.toString()}`,
   );
-  return data.data;
-}
-
-export async function fetchInvoicesPages(query: string): Promise<number> {
-  const params = new URLSearchParams();
-  params.set('skip', '0');
-  params.set('limit', '1');
-  if (query) {
-    params.set('query', query);
-  }
-
-  const data = await apiFetch<{ data: Invoice[]; count: number }>(
-    `/api/v1/invoices/?${params.toString()}`,
-  );
   const totalPages = Math.ceil(data.count / ITEMS_PER_PAGE);
-  return totalPages > 0 ? totalPages : 1;
+  return {
+    invoices: data.data,
+    totalPages: totalPages > 0 ? totalPages : 1,
+  };
 }
 
 export async function fetchInvoiceById(id: string): Promise<InvoiceForm | null> {

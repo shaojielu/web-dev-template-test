@@ -7,7 +7,8 @@
       "Bash(grep -n \"revenue-chart\" /c/Users/13129/my/web-dev-template/frontend/app/ui/dashboard/*)",
       "Bash(grep -n \"master\" /c/Users/13129/my/web-dev-template/.github/workflows/deploy-*.yml)",
       "mcp__plugin_context7_context7__query-docs",
-      "mcp__plugin_context7_context7__resolve-library-id"
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
