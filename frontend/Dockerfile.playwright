@@ -4,12 +4,14 @@ WORKDIR /app
 
 RUN corepack enable
 
-COPY frontend/package.json ./package.json
-COPY frontend/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY frontend/package.json frontend/package.json
 
 RUN pnpm install --frozen-lockfile --prod=false
 
-COPY ./frontend ./
+COPY ./frontend ./frontend
+
+WORKDIR /app/frontend
 
 ARG NEXT_PUBLIC_API_BASE_URL
 ARG API_BASE_URL

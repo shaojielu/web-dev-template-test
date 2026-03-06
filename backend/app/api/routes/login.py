@@ -36,7 +36,7 @@ def _send_password_recovery_email(
 
 @router.post("/access-token", response_model=Token)
 async def login_access_token(
-    request: Request,
+    _request: Request,
     session: SessionDep,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
@@ -70,7 +70,10 @@ async def test_token(current_user: CurrentUserDep) -> User:
 
 @router.post("/password-recovery/{email}")
 async def recover_password(
-    request: Request, email: str, session: SessionDep, background_tasks: BackgroundTasks
+    _request: Request,
+    email: str,
+    session: SessionDep,
+    background_tasks: BackgroundTasks,
 ) -> Message:
     """Password recovery."""
     user = await get_user_by_email(session=session, email=email)

@@ -2,13 +2,13 @@
 
 ## Docker Compose
 
-* Start the local environment using Docker Compose:
+- Start the local environment using Docker Compose:
 
 ```bash
 docker compose watch
 ```
 
-* Or build and run directly without watch:
+- Or build and run directly without watch:
 
 ```bash
 docker compose up -d --build
@@ -24,9 +24,9 @@ If you are developing on Windows and another container is already occupying port
 
 The script will automatically:
 
-* Detect and temporarily stop any container occupying port `5432`;
-* Start `db/backend/frontend/mailcatcher`;
-* Verify backend and frontend health checks.
+- Detect and temporarily stop any container occupying port `5432`;
+- Start `db/backend/frontend/mailcatcher`;
+- Verify backend and frontend health checks.
 
 When you are done developing, run:
 
@@ -36,7 +36,7 @@ When you are done developing, run:
 
 This script will shut down the current project containers and restore any previously stopped containers that were occupying port `5432`.
 
-* Once started, the following addresses are available:
+- Once started, the following addresses are available:
 
 Frontend (Next.js): <http://localhost:3000>
 
@@ -70,9 +70,9 @@ MailCatcher is a simple local SMTP service that captures emails sent by the back
 
 Use cases:
 
-* Testing email functionality
-* Verifying email content and formatting
-* Debugging email-related issues without sending real emails
+- Testing email functionality
+- Verifying email content and formatting
+- Debugging email-related issues without sending real emails
 
 The local Docker Compose automatically configures the backend to use MailCatcher (SMTP port 1025). Visit <http://localhost:1080> to view captured emails.
 
@@ -113,8 +113,8 @@ fastapi run --reload app/main.py
 
 Backend tests perform destructive setup (`drop_all/create_all`), so it is recommended to use:
 
-* `ENVIRONMENT=test`
-* a dedicated test database such as `POSTGRES_DB=app_test`
+- `ENVIRONMENT=test`
+- a dedicated test database such as `POSTGRES_DB=app_test`
 
 Recommended command (in the `backend/` directory):
 

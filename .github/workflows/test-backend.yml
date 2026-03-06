@@ -84,7 +84,7 @@ jobs:
         run: rm -f .env
 
   # https://github.com/marketplace/actions/alls-green#why
-  alls-green-backend:  # This job does nothing and is only used for the branch protection
+  alls-green-backend: # This job does nothing and is only used for the branch protection
     if: always()
     needs:
       - test-backend

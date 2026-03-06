@@ -500,7 +500,7 @@ async def test_get_user_not_found(
 
 
 async def test_create_user_with_full_details(
-    client: AsyncClient, superuser_token_headers: dict[str, str], db: AsyncSession
+    client: AsyncClient, superuser_token_headers: dict[str, str], _db: AsyncSession
 ) -> None:
     """Test creating a user with full details."""
     data = {
@@ -549,7 +549,7 @@ async def test_update_user_all_fields(
     assert updated["is_active"] is False
 
 
-async def test_register_user_minimal(client: AsyncClient, db: AsyncSession) -> None:
+async def test_register_user_minimal(client: AsyncClient, _db: AsyncSession) -> None:
     """Test registering a user with minimal information."""
     original_signup_value = settings.ENABLE_PUBLIC_SIGNUP
     settings.ENABLE_PUBLIC_SIGNUP = True

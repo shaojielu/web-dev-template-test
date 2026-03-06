@@ -12,7 +12,7 @@ pytestmark = pytest.mark.anyio
 
 
 async def test_recover_password_for_existing_user(
-    client: AsyncClient, db: AsyncSession
+    client: AsyncClient, _db: AsyncSession
 ) -> None:
     """Password recovery for an existing user triggers email sending (background task)."""
     r = await client.post(

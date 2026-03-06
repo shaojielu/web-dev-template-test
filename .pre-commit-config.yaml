@@ -14,15 +14,10 @@ repos:
         exclude: ^frontend/tsconfig.*\.json$
       - id: debug-statements
       - id: end-of-file-fixer
-        exclude: |
-          (?x)^(
-              frontend/src/client/.*|
-              backend/app/email-templates/build/.*
-          )$
+        exclude: ^backend/app/email-templates/build/
       - id: mixed-line-ending
         args: [--fix=lf]
       - id: trailing-whitespace
-        exclude: ^frontend/src/client/.*
       - id: no-commit-to-branch
         args: [--branch, main]
 
@@ -43,6 +38,14 @@ repos:
         pass_filenames: false
         types: [python]
         files: ^backend/
+
+      - id: prettier
+        name: prettier
+        entry: pnpm prettier --write --ignore-unknown
+        language: system
+        require_serial: true
+        files: \.(json|md|ya?ml)$
+        exclude: pnpm-lock\.yaml$
 
       - id: eslint
         name: eslint

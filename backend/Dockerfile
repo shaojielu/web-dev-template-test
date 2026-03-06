@@ -12,7 +12,7 @@ ENV UV_LINK_MODE=copy
 
 RUN python -m venv .venv
 
-COPY backend/pyproject.toml backend/uv.lock ./
+COPY backend/pyproject.toml uv.lock ./
 
 RUN uv sync --frozen --no-install-project
 
@@ -37,4 +37,8 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+WORKDIR /app
+
+CMD ["fastapi", "run", "--workers", "4", "app/main.py"]
+
+# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

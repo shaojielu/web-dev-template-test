@@ -46,7 +46,7 @@ jobs:
         working-directory: frontend
 
   # https://github.com/marketplace/actions/alls-green#why
-  alls-green-frontend:  # This job does nothing and is only used for the branch protection
+  alls-green-frontend: # This job does nothing and is only used for the branch protection
     if: always()
     needs:
       - build-frontend

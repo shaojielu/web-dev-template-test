@@ -1,6 +1,5 @@
 ﻿# FastAPI + Next.js 项目 - 部署
 
-
 你可以使用 Docker Swarm 将项目部署到远程服务器，实现零停机更新。
 
 该项目依赖 Traefik 代理处理公网流量和 HTTPS 证书。
@@ -11,10 +10,10 @@
 
 ## 准备
 
-* 准备一台可用的远程服务器。
-* 将域名的 DNS 记录指向这台服务器的 IP。
-* 配置域名的通配符子域名，这样可以为不同服务使用不同子域名，例如 `*.fastapi-project.example.com`。这会用于 `dashboard.fastapi-project.example.com`、`api.fastapi-project.example.com`、`traefik.fastapi-project.example.com` 等，也适用于 `staging`，如 `dashboard.staging.fastapi-project.example.com`。
-* 在服务器上安装并配置 Docker Engine（不是 Docker Desktop）。
+- 准备一台可用的远程服务器。
+- 将域名的 DNS 记录指向这台服务器的 IP。
+- 配置域名的通配符子域名，这样可以为不同服务使用不同子域名，例如 `*.fastapi-project.example.com`。这会用于 `dashboard.fastapi-project.example.com`、`api.fastapi-project.example.com`、`traefik.fastapi-project.example.com` 等，也适用于 `staging`，如 `dashboard.staging.fastapi-project.example.com`。
+- 在服务器上安装并配置 Docker Engine（不是 Docker Desktop）。
 
 ### 初始化 Docker Swarm
 
@@ -40,7 +39,7 @@ docker swarm init --advertise-addr <SERVER_IP>
 
 ### Traefik 配置文件
 
-* 创建远程目录用于存放 Traefik 的配置文件：
+- 创建远程目录用于存放 Traefik 的配置文件：
 
 ```bash
 mkdir -p /root/code/traefik-public/
@@ -70,19 +69,19 @@ docker network create --driver overlay --attachable traefik-public
 
 Traefik 的配置文件在启动前需要在终端设置一些环境变量。你可以在远程服务器执行以下命令：
 
-* 创建 HTTP Basic Auth 的用户名，例如：
+- 创建 HTTP Basic Auth 的用户名，例如：
 
 ```bash
 export USERNAME=admin
 ```
 
-* 创建 HTTP Basic Auth 的密码环境变量，例如：
+- 创建 HTTP Basic Auth 的密码环境变量，例如：
 
 ```bash
 export PASSWORD=changethis
 ```
 
-* 使用 openssl 生成 HTTP Basic Auth 密码的哈希值并保存到环境变量：
+- 使用 openssl 生成 HTTP Basic Auth 密码的哈希值并保存到环境变量：
 
 ```bash
 export HASHED_PASSWORD=$(openssl passwd -apr1 $PASSWORD)
@@ -94,13 +93,13 @@ export HASHED_PASSWORD=$(openssl passwd -apr1 $PASSWORD)
 echo $HASHED_PASSWORD
 ```
 
-* 设置服务器域名，例如：
+- 设置服务器域名，例如：
 
 ```bash
 export DOMAIN=fastapi-project.example.com
 ```
 
-* 设置 Let's Encrypt 使用的邮箱，例如：
+- 设置 Let's Encrypt 使用的邮箱，例如：
 
 ```bash
 export EMAIL=admin@example.com
@@ -211,26 +210,26 @@ export STACK_NAME="my-app-production"
 
 你还可以设置其他环境变量：
 
-* `PROJECT_NAME`：项目名称，用于 API 文档和邮件。
-* `FIRST_SUPERUSER`：首个超级用户邮箱。
-* `SMTP_HOST`：SMTP 服务地址。
-* `SMTP_USER`：SMTP 用户名。
-* `SMTP_PASSWORD`：SMTP 密码。
-* `SMTP_PORT`：SMTP 端口。
-* `SMTP_TLS`：是否启用 SMTP TLS。
-* `EMAILS_FROM_EMAIL`：发送邮件的账号。
-* `POSTGRES_SERVER`：PostgreSQL 服务器地址。使用 Docker Swarm 时通常保持默认 `db`。
-* `POSTGRES_PORT`：PostgreSQL 端口。
-* `POSTGRES_USER`：Postgres 用户名。
-* `POSTGRES_DB`：数据库名称。
-* `SENTRY_DSN`：Sentry DSN（如需使用）。
+- `PROJECT_NAME`：项目名称，用于 API 文档和邮件。
+- `FIRST_SUPERUSER`：首个超级用户邮箱。
+- `SMTP_HOST`：SMTP 服务地址。
+- `SMTP_USER`：SMTP 用户名。
+- `SMTP_PASSWORD`：SMTP 密码。
+- `SMTP_PORT`：SMTP 端口。
+- `SMTP_TLS`：是否启用 SMTP TLS。
+- `EMAILS_FROM_EMAIL`：发送邮件的账号。
+- `POSTGRES_SERVER`：PostgreSQL 服务器地址。使用 Docker Swarm 时通常保持默认 `db`。
+- `POSTGRES_PORT`：PostgreSQL 端口。
+- `POSTGRES_USER`：Postgres 用户名。
+- `POSTGRES_DB`：数据库名称。
+- `SENTRY_DSN`：Sentry DSN（如需使用）。
 
 ## GitHub Actions 环境变量
 
 以下环境变量仅在 GitHub Actions 中使用：
 
-* `LATEST_CHANGES`：GitHub Action [latest-changes](https://github.com/tiangolo/latest-changes) 使用的个人访问令牌，用于生成发布说明。
-* `SMOKESHOW_AUTH_KEY`：用于发布测试覆盖率报告（Smokeshow）。请根据 Smokeshow 文档创建（可免费）。
+- `LATEST_CHANGES`：GitHub Action [latest-changes](https://github.com/tiangolo/latest-changes) 使用的个人访问令牌，用于生成发布说明。
+- `SMOKESHOW_AUTH_KEY`：用于发布测试覆盖率报告（Smokeshow）。请根据 Smokeshow 文档创建（可免费）。
 
 ### 使用 Docker Swarm 部署
 
@@ -298,34 +297,34 @@ GitHub Actions 工作流会自动完成以下步骤：
 
 ### 安装 GitHub Actions Runner
 
-* 在远程服务器上创建 GitHub Actions 用户：
+- 在远程服务器上创建 GitHub Actions 用户：
 
 ```bash
 sudo adduser github
 ```
 
-* 给 `github` 用户添加 Docker 权限：
+- 给 `github` 用户添加 Docker 权限：
 
 ```bash
 sudo usermod -aG docker github
 ```
 
-* 临时切换到 `github` 用户：
+- 临时切换到 `github` 用户：
 
 ```bash
 sudo su - github
 ```
 
-* 进入 `github` 用户的主目录：
+- 进入 `github` 用户的主目录：
 
 ```bash
 cd
 ```
 
-* 按照官方文档安装自托管 Runner：
+- 按照官方文档安装自托管 Runner：
   [Adding self-hosted runners to a repository](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners#adding-a-self-hosted-runner-to-a-repository)
 
-* 设置 label 时，添加环境标签，例如 `production`。你也可以稍后添加。
+- 设置 label 时，添加环境标签，例如 `production`。你也可以稍后添加。
 
 安装完成后，文档会提示你运行命令启动 Runner。但这会在终端关闭或连接断开后停止。
 
@@ -341,25 +340,25 @@ exit
 sudo su
 ```
 
-* 在 `root` 用户下进入 `github` 用户目录中的 `actions-runner`：
+- 在 `root` 用户下进入 `github` 用户目录中的 `actions-runner`：
 
 ```bash
 cd /home/github/actions-runner
 ```
 
-* 将 Runner 安装为系统服务（用户为 `github`）：
+- 将 Runner 安装为系统服务（用户为 `github`）：
 
 ```bash
 ./svc.sh install github
 ```
 
-* 启动服务：
+- 启动服务：
 
 ```bash
 ./svc.sh start
 ```
 
-* 查看服务状态：
+- 查看服务状态：
 
 ```bash
 ./svc.sh status
@@ -375,26 +374,26 @@ cd /home/github/actions-runner
 
 当前 GitHub Actions 工作流需要的 Secrets：
 
-* `DOMAIN_PRODUCTION`
-* `DOMAIN_STAGING`
-* `STACK_NAME_PRODUCTION`
-* `STACK_NAME_STAGING`
-* `EMAILS_FROM_EMAIL`
-* `FIRST_SUPERUSER`
-* `FIRST_SUPERUSER_PASSWORD`
-* `POSTGRES_PASSWORD`
-* `SECRET_KEY`
-* `SMTP_HOST`
-* `SMTP_USER`
-* `SMTP_PASSWORD`
-* `SMTP_PORT`
-* `SMTP_TLS`
-* `SENTRY_DSN`（可选）
-* `POSTGRES_USER`（可选，默认 `postgres`）
-* `POSTGRES_DB`（可选，默认 `app`）
-* `POSTGRES_PORT`（可选，默认 `5432`）
-* `LATEST_CHANGES`
-* `SMOKESHOW_AUTH_KEY`
+- `DOMAIN_PRODUCTION`
+- `DOMAIN_STAGING`
+- `STACK_NAME_PRODUCTION`
+- `STACK_NAME_STAGING`
+- `EMAILS_FROM_EMAIL`
+- `FIRST_SUPERUSER`
+- `FIRST_SUPERUSER_PASSWORD`
+- `POSTGRES_PASSWORD`
+- `SECRET_KEY`
+- `SMTP_HOST`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `SMTP_PORT`
+- `SMTP_TLS`
+- `SENTRY_DSN`（可选）
+- `POSTGRES_USER`（可选，默认 `postgres`）
+- `POSTGRES_DB`（可选，默认 `app`）
+- `POSTGRES_PORT`（可选，默认 `5432`）
+- `LATEST_CHANGES`
+- `SMOKESHOW_AUTH_KEY`
 
 注意：`DOCKER_IMAGE_BACKEND`、`DOCKER_IMAGE_FRONTEND`、`TAG`、`FRONTEND_HOST`、`BACKEND_CORS_ORIGINS`、`POSTGRES_SERVER` 由工作流自动计算，无需配置为 Secret。
 
@@ -402,8 +401,8 @@ cd /home/github/actions-runner
 
 `.github/workflows` 目录里已有用于部署环境的 GitHub Action 工作流（使用带标签的 Runner）：
 
-* `staging`：推送（或合并）到 `master` 分支后触发
-* `production`：发布 release 后触发
+- `staging`：推送（或合并）到 `master` 分支后触发
+- `production`：发布 release 后触发
 
 工作流会自动构建镜像、推送到 GHCR、并通过 `docker stack deploy` 实现零停机滚动更新。
 

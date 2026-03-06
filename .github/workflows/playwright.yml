@@ -3,18 +3,18 @@ name: Playwright Tests
 on:
   push:
     branches:
-    - main
-    - develop
+      - main
+      - develop
   pull_request:
     types:
-    - opened
-    - synchronize
+      - opened
+      - synchronize
   workflow_dispatch:
     inputs:
       debug_enabled:
-        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        description: "Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)"
         required: false
-        default: 'false'
+        default: "false"
 
 jobs:
   changes:
@@ -23,18 +23,18 @@ jobs:
     outputs:
       changed: ${{ steps.filter.outputs.changed }}
     steps:
-    - uses: actions/checkout@v6
-    # For pull requests it's not necessary to checkout the code but for the main branch it is
-    - uses: dorny/paths-filter@v3
-      id: filter
-      with:
-        filters: |
-          changed:
-            - backend/**
-            - frontend/**
-            - .env.example
-            - compose*.yml
-            - .github/workflows/playwright.yml
+      - uses: actions/checkout@v6
+      # For pull requests it's not necessary to checkout the code but for the main branch it is
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            changed:
+              - backend/**
+              - frontend/**
+              - .env.example
+              - compose*.yml
+              - .github/workflows/playwright.yml
 
   test-playwright:
     needs:
@@ -48,56 +48,56 @@ jobs:
         shardTotal: [4]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v6
-    - name: Prepare environment file
-      run: |
-        cp .env.example .env
-        sed -i 's/^ENVIRONMENT=.*/ENVIRONMENT=test/' .env
-        sed -i 's/^POSTGRES_DB=.*/POSTGRES_DB=app_test/' .env
-        sed -i 's/^POSTGRES_PORT=.*/POSTGRES_PORT=5432/' .env
-        sed -i 's/^SEED_SAMPLE_DATA=.*/SEED_SAMPLE_DATA=true/' .env
-        sed -i 's/^ENABLE_PUBLIC_SIGNUP=.*/ENABLE_PUBLIC_SIGNUP=false/' .env
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true' }}
-      with:
-        limit-access-to-actor: true
-    - run: docker compose build
-    - run: docker compose down -v --remove-orphans
-    - name: Start services and wait for health
-      run: docker compose up -d --wait backend frontend mailcatcher
-    - name: Wait for frontend from Playwright network
-      run: docker compose run --rm --no-deps playwright curl -fsS --retry 120 --retry-delay 1 --retry-all-errors http://frontend:3000/login
-    - name: Wait for backend from Playwright network
-      run: docker compose run --rm --no-deps playwright curl -fsS --retry 120 --retry-delay 1 --retry-all-errors http://backend:8000/api/v1/utils/health-check/
-    - name: Run Playwright tests
-      run: docker compose run --rm --no-deps playwright pnpm exec playwright test --fail-on-flaky-tests --trace=retain-on-failure --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-    - name: Dump Compose state on failure
-      if: failure()
-      run: |
-        docker compose ps -a
-        docker compose logs --tail=200 backend frontend
-    - run: docker compose down -v --remove-orphans
-      if: always()
-    - name: Cleanup environment file
-      if: always()
-      run: rm -f .env
-    - name: Upload blob report to GitHub Actions Artifacts
-      if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v7
-      with:
-        name: blob-report-${{ matrix.shardIndex }}
-        path: frontend/blob-report
-        include-hidden-files: true
-        retention-days: 1
-    - name: Upload Playwright traces and videos
-      if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v7
-      with:
-        name: playwright-results-${{ matrix.shardIndex }}
-        path: frontend/test-results
-        include-hidden-files: true
-        retention-days: 3
+      - uses: actions/checkout@v6
+      - name: Prepare environment file
+        run: |
+          cp .env.example .env
+          sed -i 's/^ENVIRONMENT=.*/ENVIRONMENT=test/' .env
+          sed -i 's/^POSTGRES_DB=.*/POSTGRES_DB=app_test/' .env
+          sed -i 's/^POSTGRES_PORT=.*/POSTGRES_PORT=5432/' .env
+          sed -i 's/^SEED_SAMPLE_DATA=.*/SEED_SAMPLE_DATA=true/' .env
+          sed -i 's/^ENABLE_PUBLIC_SIGNUP=.*/ENABLE_PUBLIC_SIGNUP=false/' .env
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true' }}
+        with:
+          limit-access-to-actor: true
+      - run: docker compose build
+      - run: docker compose down -v --remove-orphans
+      - name: Start services and wait for health
+        run: docker compose up -d --wait backend frontend mailcatcher
+      - name: Wait for frontend from Playwright network
+        run: docker compose run --rm --no-deps playwright curl -fsS --retry 120 --retry-delay 1 --retry-all-errors http://frontend:3000/login
+      - name: Wait for backend from Playwright network
+        run: docker compose run --rm --no-deps playwright curl -fsS --retry 120 --retry-delay 1 --retry-all-errors http://backend:8000/api/v1/utils/health-check/
+      - name: Run Playwright tests
+        run: docker compose run --rm --no-deps playwright pnpm exec playwright test --fail-on-flaky-tests --trace=retain-on-failure --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      - name: Dump Compose state on failure
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs --tail=200 backend frontend
+      - run: docker compose down -v --remove-orphans
+        if: always()
+      - name: Cleanup environment file
+        if: always()
+        run: rm -f .env
+      - name: Upload blob report to GitHub Actions Artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: blob-report-${{ matrix.shardIndex }}
+          path: frontend/blob-report
+          include-hidden-files: true
+          retention-days: 1
+      - name: Upload Playwright traces and videos
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-results-${{ matrix.shardIndex }}
+          path: frontend/test-results
+          include-hidden-files: true
+          retention-days: 3
 
   merge-playwright-reports:
     needs:
@@ -107,42 +107,42 @@ jobs:
     if: ${{ !cancelled() && needs.changes.outputs.changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
-    - uses: pnpm/action-setup@v4
-      with:
-        version: 10
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 22
-        cache: 'pnpm'
-        cache-dependency-path: frontend/pnpm-lock.yaml
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-      working-directory: frontend
-    - name: Download blob reports from GitHub Actions Artifacts
-      uses: actions/download-artifact@v8
-      with:
-        path: frontend/all-blob-reports
-        pattern: blob-report-*
-        merge-multiple: true
-    - name: Merge into HTML Report
-      if: ${{ hashFiles('frontend/all-blob-reports/**') != '' }}
-      run: pnpm exec playwright merge-reports --reporter html ./all-blob-reports
-      working-directory: frontend
-    - name: Skip merge when no blob reports are available
-      if: ${{ hashFiles('frontend/all-blob-reports/**') == '' }}
-      run: echo "No blob reports found, skipping merge step."
-    - name: Upload HTML report
-      if: ${{ hashFiles('frontend/playwright-report/**') != '' }}
-      uses: actions/upload-artifact@v7
-      with:
-        name: html-report--attempt-${{ github.run_attempt }}
-        path: frontend/playwright-report
-        retention-days: 30
-        include-hidden-files: true
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend
+      - name: Download blob reports from GitHub Actions Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: frontend/all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+      - name: Merge into HTML Report
+        if: ${{ hashFiles('frontend/all-blob-reports/**') != '' }}
+        run: pnpm exec playwright merge-reports --reporter html ./all-blob-reports
+        working-directory: frontend
+      - name: Skip merge when no blob reports are available
+        if: ${{ hashFiles('frontend/all-blob-reports/**') == '' }}
+        run: echo "No blob reports found, skipping merge step."
+      - name: Upload HTML report
+        if: ${{ hashFiles('frontend/playwright-report/**') != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: html-report--attempt-${{ github.run_attempt }}
+          path: frontend/playwright-report
+          retention-days: 30
+          include-hidden-files: true
 
   # https://github.com/marketplace/actions/alls-green#why
-  alls-green-playwright:  # This job does nothing and is only used for the branch protection
+  alls-green-playwright: # This job does nothing and is only used for the branch protection
     if: always()
     needs:
       - test-playwright

@@ -5,43 +5,53 @@ description = "A production-ready FastAPI template"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "asyncpg>=0.30.0",
-    "alembic>=1.16.4",
-    "email-validator>=2.2.0",
-    "emails>=0.6",
-    "fastapi[standard]>=0.115.0",
-    "passlib[bcrypt]>=1.7.4",
-    "psycopg2-binary>=2.9.10",
-    "pydantic-settings>=2.6.0",
-    "pyjwt>=2.10.1",
-    "python-multipart>=0.0.20",
-    "sentry-sdk[fastapi]>=2.19.0",
-    "sqlalchemy>=2.0.41",
-    "tenacity>=9.1.2",
+  "alembic>=1.16.4",
+  "asyncpg>=0.30.0",
+  "email-validator>=2.2.0",
+  "emails>=0.6",
+  "fastapi[standard]>=0.115.0",
+  "bcrypt>=4.0.0",
+  "psycopg2-binary>=2.9.10",
+  "pydantic-settings>=2.6.0",
+  "pyjwt>=2.10.1",
+  "python-multipart>=0.0.20",
+  "sentry-sdk[fastapi]>=2.19.0",
+  "sqlalchemy>=2.0.41",
+  "tenacity>=9.1.2",
 ]
 
 [dependency-groups]
 dev = [
-    "anyio>=4.7.0",
-    "httpx>=0.28.0",
-    "mypy>=1.18.2",
-    "pre-commit>=4.0.0",
-    "pytest>=8.4.1",
-    "pytest-anyio>=0.0.0",
-    "pytest-cov>=6.2.1",
-    "pytest-html>=4.1.1",
-    "pytest-mock>=3.14.1",
-    "ruff>=0.8.4",
-    "types-passlib>=1.7.7.20240106",
+  "anyio>=4.7.0",
+  "httpx>=0.28.0",
+  "mypy>=1.18.2",
+  "pre-commit>=4.0.0",
+  "pytest>=8.4.1",
+  "pytest-anyio>=0.0.0",
+  "pytest-cov>=6.2.1",
+  "pytest-html>=4.1.1",
+  "pytest-mock>=3.14.1",
+  "ruff>=0.8.4",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.coverage.run]
+source = ["app"]
+dynamic_context = "test_function"
+
+[tool.coverage.report]
+show_missing = true
+sort = "-Cover"
+
+[tool.coverage.html]
+show_contexts = true
+
 [tool.mypy]
 strict = true
-exclude = ["venv", ".venv", "alembic", "tests"]
+exclude = ["venv", ".venv", "alembic"]
 
 [tool.ruff]
 target-version = "py313"
@@ -49,49 +59,23 @@ exclude = ["alembic"]
 
 [tool.ruff.lint]
 select = [
-    "E",      # pycodestyle errors
-    "W",      # pycodestyle warnings
-    "F",      # pyflakes
-    "I",      # isort
-    "B",      # flake8-bugbear
-    "C4",     # flake8-comprehensions
-    "UP",     # pyupgrade
-    "SIM",    # flake8-simplify
-    "TCH",    # flake8-type-checking
-    "RUF",    # ruff-specific rules
+  "E",  # pycodestyle errors
+  "W",  # pycodestyle warnings
+  "F",  # pyflakes
+  "I",  # isort
+  "B",  # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "UP",  # pyupgrade
+  "ARG001",  # unused arguments in functions
+  "T201",  # print statements are not allowed
 ]
 ignore = [
-    "E501",   # line too long, handled by formatter
-    "B008",   # do not perform function calls in argument defaults
-    "RUF001", # ambiguous unicode character in string
-    "RUF002", # ambiguous unicode character in docstring
-    "RUF003", # ambiguous unicode character in comment
+  "E501",  # line too long, handled by black
+  "B008",  # do not perform function calls in argument defaults
+  "W191",  # indentation contains tabs
+  "B904",  # Allow raising exceptions without from e, for HTTPException
 ]
 
 [tool.ruff.lint.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
 keep-runtime-typing = true
-
-[tool.ruff.lint.isort]
-known-first-party = ["app"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-filterwarnings = [
-    "ignore::DeprecationWarning",
-]
-
-[tool.coverage.run]
-source = ["app"]
-omit = [
-    "app/email-templates/*",
-    "app/backend_pre_start.py",
-    "app/test_pre_start.py",
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-    "raise NotImplementedError",
-    'if __name__ == "__main__":',
-]

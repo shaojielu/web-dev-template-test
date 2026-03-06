@@ -1,6 +1,5 @@
 # FastAPI + Next.js Project - Deployment
 
-
 You can deploy the project to a remote server using Docker Swarm, enabling zero-downtime updates.
 
 The project relies on a Traefik proxy to handle public traffic and HTTPS certificates.
@@ -11,10 +10,10 @@ Before getting started, some configuration is required.
 
 ## Prerequisites
 
-* Have a remote server ready.
-* Point your domain's DNS records to the server's IP address.
-* Configure a wildcard subdomain for your domain so that different services can use different subdomains, e.g. `*.fastapi-project.example.com`. This will be used for `dashboard.fastapi-project.example.com`, `api.fastapi-project.example.com`, `traefik.fastapi-project.example.com`, etc., as well as for `staging`, e.g. `dashboard.staging.fastapi-project.example.com`.
-* Install and configure Docker Engine (not Docker Desktop) on the server.
+- Have a remote server ready.
+- Point your domain's DNS records to the server's IP address.
+- Configure a wildcard subdomain for your domain so that different services can use different subdomains, e.g. `*.fastapi-project.example.com`. This will be used for `dashboard.fastapi-project.example.com`, `api.fastapi-project.example.com`, `traefik.fastapi-project.example.com`, etc., as well as for `staging`, e.g. `dashboard.staging.fastapi-project.example.com`.
+- Install and configure Docker Engine (not Docker Desktop) on the server.
 
 ### Initialize Docker Swarm
 
@@ -40,7 +39,7 @@ The following steps only need to be performed once.
 
 ### Traefik Configuration Files
 
-* Create a remote directory to store the Traefik configuration files:
+- Create a remote directory to store the Traefik configuration files:
 
 ```bash
 mkdir -p /root/code/traefik-public/
@@ -70,19 +69,19 @@ Note: When using Docker Swarm, the `overlay` driver must be used instead of the 
 
 The Traefik configuration file requires some environment variables to be set in the terminal before starting. You can run the following commands on the remote server:
 
-* Create the HTTP Basic Auth username, for example:
+- Create the HTTP Basic Auth username, for example:
 
 ```bash
 export USERNAME=admin
 ```
 
-* Create the HTTP Basic Auth password environment variable, for example:
+- Create the HTTP Basic Auth password environment variable, for example:
 
 ```bash
 export PASSWORD=changethis
 ```
 
-* Use openssl to generate a hash of the HTTP Basic Auth password and store it in an environment variable:
+- Use openssl to generate a hash of the HTTP Basic Auth password and store it in an environment variable:
 
 ```bash
 export HASHED_PASSWORD=$(openssl passwd -apr1 $PASSWORD)
@@ -94,13 +93,13 @@ You can print the hash to verify it was generated correctly:
 echo $HASHED_PASSWORD
 ```
 
-* Set the server domain, for example:
+- Set the server domain, for example:
 
 ```bash
 export DOMAIN=fastapi-project.example.com
 ```
 
-* Set the email address used by Let's Encrypt, for example:
+- Set the email address used by Let's Encrypt, for example:
 
 ```bash
 export EMAIL=admin@example.com
@@ -211,26 +210,26 @@ export STACK_NAME="my-app-production"
 
 You can also set the following optional environment variables:
 
-* `PROJECT_NAME`: The project name, used in API documentation and emails.
-* `FIRST_SUPERUSER`: The email address of the first superuser.
-* `SMTP_HOST`: SMTP server address.
-* `SMTP_USER`: SMTP username.
-* `SMTP_PASSWORD`: SMTP password.
-* `SMTP_PORT`: SMTP port.
-* `SMTP_TLS`: Whether to enable SMTP TLS.
-* `EMAILS_FROM_EMAIL`: The email address used to send emails.
-* `POSTGRES_SERVER`: PostgreSQL server address. When using Docker Swarm, the default `db` is typically kept.
-* `POSTGRES_PORT`: PostgreSQL port.
-* `POSTGRES_USER`: Postgres username.
-* `POSTGRES_DB`: Database name.
-* `SENTRY_DSN`: Sentry DSN (if needed).
+- `PROJECT_NAME`: The project name, used in API documentation and emails.
+- `FIRST_SUPERUSER`: The email address of the first superuser.
+- `SMTP_HOST`: SMTP server address.
+- `SMTP_USER`: SMTP username.
+- `SMTP_PASSWORD`: SMTP password.
+- `SMTP_PORT`: SMTP port.
+- `SMTP_TLS`: Whether to enable SMTP TLS.
+- `EMAILS_FROM_EMAIL`: The email address used to send emails.
+- `POSTGRES_SERVER`: PostgreSQL server address. When using Docker Swarm, the default `db` is typically kept.
+- `POSTGRES_PORT`: PostgreSQL port.
+- `POSTGRES_USER`: Postgres username.
+- `POSTGRES_DB`: Database name.
+- `SENTRY_DSN`: Sentry DSN (if needed).
 
 ## GitHub Actions Environment Variables
 
 The following environment variables are only used in GitHub Actions:
 
-* `LATEST_CHANGES`: A personal access token used by the GitHub Action [latest-changes](https://github.com/tiangolo/latest-changes) to generate release notes.
-* `SMOKESHOW_AUTH_KEY`: Used to publish test coverage reports (Smokeshow). Please create one according to the Smokeshow documentation (free).
+- `LATEST_CHANGES`: A personal access token used by the GitHub Action [latest-changes](https://github.com/tiangolo/latest-changes) to generate release notes.
+- `SMOKESHOW_AUTH_KEY`: Used to publish test coverage reports (Smokeshow). Please create one according to the Smokeshow documentation (free).
 
 ### Deploy with Docker Swarm
 
@@ -298,34 +297,34 @@ The GitHub Actions workflows automatically perform the following steps:
 
 ### Install the GitHub Actions Runner
 
-* Create a GitHub Actions user on the remote server:
+- Create a GitHub Actions user on the remote server:
 
 ```bash
 sudo adduser github
 ```
 
-* Grant Docker permissions to the `github` user:
+- Grant Docker permissions to the `github` user:
 
 ```bash
 sudo usermod -aG docker github
 ```
 
-* Temporarily switch to the `github` user:
+- Temporarily switch to the `github` user:
 
 ```bash
 sudo su - github
 ```
 
-* Navigate to the `github` user's home directory:
+- Navigate to the `github` user's home directory:
 
 ```bash
 cd
 ```
 
-* Follow the official documentation to install the self-hosted runner:
+- Follow the official documentation to install the self-hosted runner:
   [Adding self-hosted runners to a repository](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners#adding-a-self-hosted-runner-to-a-repository)
 
-* When setting labels, add an environment label such as `production`. You can also add it later.
+- When setting labels, add an environment label such as `production`. You can also add it later.
 
 After installation, the documentation will prompt you to run a command to start the runner. However, this will stop when the terminal is closed or the connection is lost.
 
@@ -341,25 +340,25 @@ Then switch to `root` (if you haven't already):
 sudo su
 ```
 
-* As the `root` user, navigate to the `actions-runner` directory inside the `github` user's home directory:
+- As the `root` user, navigate to the `actions-runner` directory inside the `github` user's home directory:
 
 ```bash
 cd /home/github/actions-runner
 ```
 
-* Install the runner as a system service (running as the `github` user):
+- Install the runner as a system service (running as the `github` user):
 
 ```bash
 ./svc.sh install github
 ```
 
-* Start the service:
+- Start the service:
 
 ```bash
 ./svc.sh start
 ```
 
-* Check the service status:
+- Check the service status:
 
 ```bash
 ./svc.sh status
@@ -375,26 +374,26 @@ Configure the required secrets in the repository (matching the environment varia
 
 The current GitHub Actions workflows require the following secrets:
 
-* `DOMAIN_PRODUCTION`
-* `DOMAIN_STAGING`
-* `STACK_NAME_PRODUCTION`
-* `STACK_NAME_STAGING`
-* `EMAILS_FROM_EMAIL`
-* `FIRST_SUPERUSER`
-* `FIRST_SUPERUSER_PASSWORD`
-* `POSTGRES_PASSWORD`
-* `SECRET_KEY`
-* `SMTP_HOST`
-* `SMTP_USER`
-* `SMTP_PASSWORD`
-* `SMTP_PORT`
-* `SMTP_TLS`
-* `SENTRY_DSN` (optional)
-* `POSTGRES_USER` (optional, defaults to `postgres`)
-* `POSTGRES_DB` (optional, defaults to `app`)
-* `POSTGRES_PORT` (optional, defaults to `5432`)
-* `LATEST_CHANGES`
-* `SMOKESHOW_AUTH_KEY`
+- `DOMAIN_PRODUCTION`
+- `DOMAIN_STAGING`
+- `STACK_NAME_PRODUCTION`
+- `STACK_NAME_STAGING`
+- `EMAILS_FROM_EMAIL`
+- `FIRST_SUPERUSER`
+- `FIRST_SUPERUSER_PASSWORD`
+- `POSTGRES_PASSWORD`
+- `SECRET_KEY`
+- `SMTP_HOST`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `SMTP_PORT`
+- `SMTP_TLS`
+- `SENTRY_DSN` (optional)
+- `POSTGRES_USER` (optional, defaults to `postgres`)
+- `POSTGRES_DB` (optional, defaults to `app`)
+- `POSTGRES_PORT` (optional, defaults to `5432`)
+- `LATEST_CHANGES`
+- `SMOKESHOW_AUTH_KEY`
 
 Note: `DOCKER_IMAGE_BACKEND`, `DOCKER_IMAGE_FRONTEND`, `TAG`, `FRONTEND_HOST`, `BACKEND_CORS_ORIGINS`, and `POSTGRES_SERVER` are automatically computed by the workflows and do not need to be configured as secrets.
 
@@ -402,8 +401,8 @@ Note: `DOCKER_IMAGE_BACKEND`, `DOCKER_IMAGE_FRONTEND`, `TAG`, `FRONTEND_HOST`, `
 
 The `.github/workflows` directory contains GitHub Action workflows for deploying to environments (using labeled runners):
 
-* `staging`: Triggered on push (or merge) to the `main` branch
-* `production`: Triggered on release publication
+- `staging`: Triggered on push (or merge) to the `main` branch
+- `production`: Triggered on release publication
 
 The workflows automatically build images, push them to GHCR, and perform zero-downtime rolling updates via `docker stack deploy`.
 

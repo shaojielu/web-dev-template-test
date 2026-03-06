@@ -7,19 +7,20 @@ RUN corepack enable
 
 FROM base AS builder
 
-COPY frontend/package.json ./package.json
-COPY frontend/pnpm-lock.yaml ./pnpm-lock.yaml
+# Replicate pnpm workspace structure for frozen-lockfile install
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY frontend/package.json frontend/package.json
 
 RUN pnpm install --frozen-lockfile
 
-COPY frontend/ ./
+COPY frontend/ frontend/
 
 ARG NEXT_PUBLIC_API_BASE_URL
 ARG API_BASE_URL
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV API_BASE_URL=$API_BASE_URL
 
-RUN pnpm build
+RUN pnpm --filter frontend build
 
 FROM base AS runner
 
@@ -31,12 +32,12 @@ ENV API_BASE_URL=$API_BASE_URL
 
 WORKDIR /app
 
-COPY --from=builder --chown=node:node /app/public ./public
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/frontend/public ./frontend/public
+COPY --from=builder --chown=node:node /app/frontend/.next/standalone ./
+COPY --from=builder --chown=node:node /app/frontend/.next/static ./frontend/.next/static
 
 USER node
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["node", "frontend/server.js"]

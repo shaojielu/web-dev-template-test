@@ -1,0 +1,13 @@
+{
+  "name": "fastapi-full-stack-template",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter frontend dev",
+    "lint": "pnpm --filter frontend lint",
+    "test": "pnpm --filter frontend test",
+    "test:ui": "pnpm --filter frontend test:ui"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1"
+  }
+}

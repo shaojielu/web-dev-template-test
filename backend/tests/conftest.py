@@ -57,7 +57,7 @@ async def db() -> AsyncGenerator[AsyncSession]:
 
 
 @pytest.fixture(scope="function")
-async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient]:
+async def client(_db: AsyncSession) -> AsyncGenerator[AsyncClient]:
     """Get a test client (function-scoped); depends on db to ensure database is initialized."""
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -67,7 +67,7 @@ async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient]:
 
 @pytest.fixture(scope="function")
 async def superuser_token_headers(
-    client: AsyncClient, db: AsyncSession
+    client: AsyncClient, _db: AsyncSession
 ) -> dict[str, str]:
     """Get superuser authentication headers (function-scoped)."""
     return await get_superuser_token_headers(client)

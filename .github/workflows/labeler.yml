@@ -17,9 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-    - uses: actions/labeler@v6
-      if: ${{ github.event.action != 'labeled' && github.event.action != 'unlabeled' }}
-    - run: echo "Done adding labels"
+      - uses: actions/labeler@v6
+        if: ${{ github.event.action != 'labeled' && github.event.action != 'unlabeled' }}
+      - run: echo "Done adding labels"
   # Run this after labeler applied labels
   check-labels:
     needs:
