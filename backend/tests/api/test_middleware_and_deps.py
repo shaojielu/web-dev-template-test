@@ -1,6 +1,7 @@
 import jwt
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import ALGORITHM
@@ -79,3 +80,60 @@ async def test_non_access_token_type_returns_403(client: AsyncClient) -> None:
         headers={"Authorization": f"Bearer {token}"},
     )
     assert r.status_code == 403
+
+
+async def test_token_for_deleted_user_returns_404(
+    client: AsyncClient, db: AsyncSession
+) -> None:
+    """A valid token for a user that has been deleted should return 404."""
+    from datetime import timedelta
+
+    from app.core.security import create_access_token
+    from app.schemas.users import UserCreate
+    from app.services.user import create_user, delete_user
+
+    user_in = UserCreate(
+        email="deleteme@example.com", password="testpassword123", is_active=True
+    )
+    user = await create_user(db, user_in)
+    await db.commit()
+
+    token = create_access_token(subject=user.id, expires_delta=timedelta(minutes=30))
+
+    await delete_user(db, user)
+    await db.commit()
+
+    r = await client.get(
+        f"{settings.API_V1_STR}/users/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert r.status_code == 404
+    assert r.json()["detail"] == "User not found"
+
+
+async def test_inactive_user_rejected_by_active_user_dep(
+    client: AsyncClient, db: AsyncSession
+) -> None:
+    """An inactive user should be rejected with 400 when accessing protected endpoints."""
+    from datetime import timedelta
+
+    from app.core.security import create_access_token
+    from app.schemas.users import UserCreate
+    from app.services.user import create_user
+
+    user_in = UserCreate(
+        email="inactive@example.com",
+        password="testpassword123",
+        is_active=False,
+    )
+    user = await create_user(db, user_in)
+    await db.commit()
+
+    token = create_access_token(subject=user.id, expires_delta=timedelta(minutes=30))
+
+    r = await client.get(
+        f"{settings.API_V1_STR}/users/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert r.status_code == 400
+    assert r.json()["detail"] == "Inactive user"

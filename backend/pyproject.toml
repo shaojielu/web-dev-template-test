@@ -41,10 +41,14 @@ build-backend = "hatchling.build"
 [tool.coverage.run]
 source = ["app"]
 dynamic_context = "test_function"
+omit = ["app/backend_pre_start.py"]
 
 [tool.coverage.report]
 show_missing = true
 sort = "-Cover"
+exclude_lines = [
+    "if __name__",
+]
 
 [tool.coverage.html]
 show_contexts = true

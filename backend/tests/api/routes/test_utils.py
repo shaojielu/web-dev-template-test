@@ -52,3 +52,19 @@ async def test_test_email_invalid_email(
         headers=superuser_token_headers,
     )
     assert response.status_code == 422  # Validation error
+
+
+async def test_test_email_success(
+    client: AsyncClient,
+    superuser_token_headers: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test that the test email endpoint succeeds when email sending works."""
+    monkeypatch.setattr("app.api.routes.utils.send_email", lambda **kwargs: None)
+    response = await client.post(
+        f"{settings.API_V1_STR}/utils/test-email/",
+        params={"email_to": "test@example.com"},
+        headers=superuser_token_headers,
+    )
+    assert response.status_code == 201
+    assert response.json()["message"] == "Test email sent"
