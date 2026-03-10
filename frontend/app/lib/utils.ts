@@ -34,6 +34,8 @@ export function generateYAxis(revenue: Revenue[]) {
 }
 
 export function generatePagination(currentPage: number, totalPages: number) {
+  currentPage = Math.max(1, Math.min(currentPage, totalPages));
+
   if (totalPages <= 7) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }

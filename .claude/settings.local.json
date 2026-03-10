@@ -8,7 +8,10 @@
       "Bash(grep -n \"master\" /c/Users/13129/my/web-dev-template/.github/workflows/deploy-*.yml)",
       "mcp__plugin_context7_context7__query-docs",
       "mcp__plugin_context7_context7__resolve-library-id",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(grep:*)",
+      "Bash(curl:*)",
+      "Bash(docker compose:*)"
     ]
   }
 }

@@ -125,11 +125,16 @@ export async function apiFetch<T>(
     if (response.status === 401) {
       redirect('/login');
     }
-    const message = await response.text();
-    throw new ApiError(
-      response.status,
-      message || `Request failed with ${response.status}`,
-    );
+    let message = `Request failed with ${response.status}`;
+    try {
+      const body = await response.json();
+      if (typeof body.detail === 'string') {
+        message = body.detail;
+      }
+    } catch {
+      // response was not JSON, use generic message
+    }
+    throw new ApiError(response.status, message);
   }
 
   if (response.status === 204) {

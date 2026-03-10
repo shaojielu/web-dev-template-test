@@ -43,5 +43,3 @@ export type FormattedCustomersTable = {
   total_pending: string;
   total_paid: string;
 };
-
-export type CustomersTableType = FormattedCustomersTable;

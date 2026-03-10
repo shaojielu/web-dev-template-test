@@ -1,5 +1,8 @@
+'use client';
+
 import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { useTransition } from 'react';
 import { deleteInvoice } from '@/app/lib/actions';
 
 export function CreateInvoice() {
@@ -30,13 +33,21 @@ export function UpdateInvoice({ id }: { id: string }) {
 }
 
 export function DeleteInvoice({ id }: { id: string }) {
+  const [isPending, startTransition] = useTransition();
   const deleteInvoiceWithId = deleteInvoice.bind(null, id);
   return (
-    <form action={deleteInvoiceWithId}>
+    <form
+      action={() => {
+        startTransition(async () => {
+          await deleteInvoiceWithId();
+        });
+      }}
+    >
       <button
         type="submit"
+        disabled={isPending}
         data-testid="invoice-delete-button"
-        className="rounded-md border p-2 hover:bg-gray-100"
+        className="rounded-md border p-2 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
       >
         <span className="sr-only">Delete</span>
         <TrashIcon className="w-5" />

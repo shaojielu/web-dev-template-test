@@ -11,11 +11,19 @@ function sanitizeRedirectTo(value: FormDataEntryValue | null): string {
   if (!value) {
     return '/dashboard';
   }
-  const redirectTo = value.toString().trim();
+  let redirectTo: string;
+  try {
+    redirectTo = decodeURIComponent(value.toString().trim());
+  } catch {
+    return '/dashboard';
+  }
   if (!redirectTo.startsWith('/') || redirectTo.startsWith('//')) {
     return '/dashboard';
   }
   if (redirectTo.includes('\\')) {
+    return '/dashboard';
+  }
+  if (/^[a-z][a-z0-9+.-]*:/i.test(redirectTo)) {
     return '/dashboard';
   }
   return redirectTo;
@@ -129,14 +137,18 @@ export async function createInvoice(
 
   const { customerId, amount, status } = validatedFields.data;
 
-  await apiFetch('/api/v1/invoices/', {
-    method: 'POST',
-    body: JSON.stringify({
-      customer_id: customerId,
-      amount,
-      status,
-    }),
-  });
+  try {
+    await apiFetch('/api/v1/invoices/', {
+      method: 'POST',
+      body: JSON.stringify({
+        customer_id: customerId,
+        amount,
+        status,
+      }),
+    });
+  } catch {
+    return { message: 'Failed to create invoice.' };
+  }
 
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
@@ -162,22 +174,30 @@ export async function updateInvoice(
 
   const { customerId, amount, status } = validatedFields.data;
 
-  await apiFetch(`/api/v1/invoices/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify({
-      customer_id: customerId,
-      amount,
-      status,
-    }),
-  });
+  try {
+    await apiFetch(`/api/v1/invoices/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        customer_id: customerId,
+        amount,
+        status,
+      }),
+    });
+  } catch {
+    return { message: 'Failed to update invoice.' };
+  }
 
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
 }
 
 export async function deleteInvoice(id: string) {
-  await apiFetch(`/api/v1/invoices/${id}`, {
-    method: 'DELETE',
-  });
+  try {
+    await apiFetch(`/api/v1/invoices/${id}`, {
+      method: 'DELETE',
+    });
+  } catch {
+    return { message: 'Failed to delete invoice.' };
+  }
   revalidatePath('/dashboard/invoices');
 }

@@ -82,10 +82,10 @@ async def test_non_access_token_type_returns_403(client: AsyncClient) -> None:
     assert r.status_code == 403
 
 
-async def test_token_for_deleted_user_returns_404(
+async def test_token_for_deleted_user_returns_401(
     client: AsyncClient, db: AsyncSession
 ) -> None:
-    """A valid token for a user that has been deleted should return 404."""
+    """A valid token for a user that has been deleted should return 401."""
     from datetime import timedelta
 
     from app.core.security import create_access_token
@@ -107,7 +107,7 @@ async def test_token_for_deleted_user_returns_404(
         f"{settings.API_V1_STR}/users/me",
         headers={"Authorization": f"Bearer {token}"},
     )
-    assert r.status_code == 404
+    assert r.status_code == 401
     assert r.json()["detail"] == "User not found"
 
 

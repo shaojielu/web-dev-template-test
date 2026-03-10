@@ -51,7 +51,8 @@ export async function fetchFilteredInvoicesWithCount(
   query: string,
   currentPage: number,
 ): Promise<{ invoices: Invoice[]; totalPages: number }> {
-  const skip = (currentPage - 1) * ITEMS_PER_PAGE;
+  const safePage = Math.max(1, Math.floor(currentPage));
+  const skip = (safePage - 1) * ITEMS_PER_PAGE;
   const params = new URLSearchParams();
   params.set('skip', skip.toString());
   params.set('limit', ITEMS_PER_PAGE.toString());
