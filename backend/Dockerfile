@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:0.6.6 AS uv
+FROM ghcr.io/astral-sh/uv:0.11.7 AS uv
 
 FROM python:3.13 AS builder
 
